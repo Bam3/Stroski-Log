@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang=en>
+  <head>
+    <meta charset=utf-8>
+    <title>Stroški - Log</title>
+    <link rel="shortcut icon" href="http://icons.iconarchive.com/icons/graphicloads/100-flat/48/home-icon.png"/>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="naslov">
+        <a href="https://www.kittysplit.com/runkova-stro%C5%A1ki/ZBa9WC3qKOjvYbNegsBByl7YP3s3ZB2Z-2"><img src="C:\Users\Bam-PC\OneDrive\Mala Šola programiranja\Stroski-Log\Foto\Kitty.png" class="logo-pic"></a>
+        <h1>Stroški Runkova</h1>
+      </div>
+      <div class="glava-nastavitve">
+      </div>
+      <div class="table">
+        <div class="table-toolbar">
+          <div class="type">Datum</div>
+          <div class="type">Plačnik</div>
+          <div class="type">Tip</div>
+          <div class="type">Znesek</div>
+          <div class="type">Kategorija</div>
+          <div class="type">Mato</div>
+          <div class="type">Maja</div>
+          <div class="type">Miha</div>
+          <div class="type">Anja</div>
+        </div>
+        <div class="table-contents"></div>
+      </div>
+      <div class="open-csv-file">
+        <input type="file" id="csvFileInput" onchange="readFile(this.files)" accept=".csv">
+        <button class="confirm-button">Potrdi</button>
+      </div>
+      <script src="script.js"></script>
+    </div>
+  </body>
+</html>

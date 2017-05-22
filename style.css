@@ -1,0 +1,84 @@
+body {
+  font-family: 'Open Sans Condensed';
+}
+h1 {
+  font-size: 30px;
+  border-bottom: 1px solid black;
+  color: #595B66;
+  flex: 1;
+  margin: 10px;
+  padding: 5px;
+}
+.container {
+  background: white;
+  padding: 5px 5px 5px 5px;
+  user-select: none;
+}
+.glava-nastavitve {
+  display: flex;
+  justify-content: space-between;
+  font-size: 20px;
+  width: auto;
+  height: auto;
+}
+.tag-category {
+  height: 36px;
+  width: 86px;
+  background: #F3F3F3;
+  text-align: center;
+  line-height: 36px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 2px 2px 2px 2px;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 10px;
+  padding: 0px 16px 0 16px;
+
+}
+.tag-category:hover {
+  background: #f8f8f8;
+  cursor: pointer
+}
+.tag-category:active {
+  border: 1px solid #3866dc;
+
+}
+.open-csv-file {
+  margin: 10px;
+  background: #f8f8f8;
+  display: flex;
+  justify-content: space-between;
+}
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  font-size: 19px;
+  margin: 10px;
+  padding: 4px;
+  border: 1px solid grey;
+}
+.type {
+  display: flex;
+  justify-content: center;
+  padding: 5px 34px 5px 34px;
+  font-size: 20px;
+  font-weight: bold;
+  flex: 1;
+}
+.table-data {
+  margin: 10px;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid grey;
+}
+.table-data:hover {
+  background: rgba(128, 128, 128, 0.16);
+}
+.naslov{
+  display: flex;
+  justify-content: center;
+}
+.logo-pic {
+  width: 75px;
+  height: 75px;
+}
