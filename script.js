@@ -74,11 +74,8 @@ function sumStroskovIzbraneKategorije(izbrnaKategorija){
 }
 //funkcija razvršča nakupe po datumu
 var razvrstiPoDatumu = function(inputArray){
-  for (var i = 0; i < inputArray.length; i++) {
-    inputArray[i].dateForSort = Number(inputArray[i].date.split('-').join(''))
-  }
-  return inputArray.sort(function(prvi, drugi){
-    return prvi.dateForSort - drugi.dateForSort;
+    return inputArray.sort(function(prvi, drugi){
+      return prvi.date.localeCompare(drugi.date);
   })
 }
 // funkcija katera naredi: [array pogostih kategorije] [array vseh kategorij]
