@@ -10,6 +10,8 @@ var arrayOfDatesForFilter = [];
 var arrayPogostihKategorij;
 // v arrayu so shranjeni vsi izbrani nakupi kategorije izbrane iz gumba .tag-category
 var arrayOfSelectedCategoryToDraw = [];
+// v arrayu so shranjeni vsi izbrani nakupi izbrane po datumu
+var arrayOfSelectedDateToDraw = [];
 // funkcija za kreiranje elementov
 var ustvariElement = function(tag = "div", klas, besedilo) {
   var novElement = document.createElement(tag);
@@ -130,6 +132,15 @@ function getSelectedCategories(selectedCategory) {
   }
   return arrayOfSelectedCategory;
 }
+function getSelectedDate(selectedDate) {
+  var arrayOfSelectedDate = [];
+  for (var i = 0; i < podatki.length; i++) {
+    if (podatki[i].date.format("MMMM YYYY") === selectedDate) {
+      arrayOfSelectedDate.push(podatki[i]);
+    }
+  }
+  return arrayOfSelectedDate;
+};
 function attachEvents() {
   var confirmButton = document.querySelector(".confirm-button");
   confirmButton.addEventListener("click", function(event) {
@@ -141,6 +152,22 @@ function attachEvents() {
       tagCategories.addEventListener("click", function(event) {
         arrayOfSelectedCategoryToDraw = getSelectedCategories(event.srcElement.innerText);
         drawTableOfSelectedCategories(razvrstiPoDatumu(arrayOfSelectedCategoryToDraw));
+      });
+    };
+  });
+  var dateDropdownButton = document.querySelector(".filter-date-dropdown");
+  var dropdownContent = document.querySelector(".dropdown-content");
+  dateDropdownButton.addEventListener("click", function(event) {
+    // vse elemente izbrišemo, če kliknem dvakrat jih naredi dvakrat!!!
+    dropdownContent.innerHTML = "";
+    // omogočimo prikazovanje dropdown menija
+    dropdownContent.classList.toggle("show");
+    for (var i = 0; i < arrayOfDatesForFilter.length; i++) {
+      var tagDate = ustvariElement("div", "", arrayOfDatesForFilter[i]);
+      document.querySelector(".dropdown-content").append(tagDate);
+      tagDate.addEventListener("click", function(event) {
+        arrayOfSelectedDateToDraw = getSelectedDate(event.srcElement.innerText);
+        drawTableOfSelectedCategories(razvrstiPoDatumu(arrayOfSelectedDateToDraw));
       });
     }
   });
@@ -187,4 +214,3 @@ function processData(csv) {
   podatki = razvrstiPoDatumu(vsaPlacila);
 }
 attachEvents();
-// Pridobivanje vseh kategorij
