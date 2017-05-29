@@ -135,7 +135,7 @@ function getSelectedCategories(selectedCategory) {
 function getSelectedDate(selectedDate) {
   var arrayOfSelectedDate = [];
   for (var i = 0; i < podatki.length; i++) {
-    if (podatki[i].date.format("MMMM YYYY") === selectedDate) {
+    if ((podatki[i].date.format("MMMM YYYY") === selectedDate) && (podatki[i].type === "Expense")) {
       arrayOfSelectedDate.push(podatki[i]);
     }
   }
