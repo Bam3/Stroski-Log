@@ -12,6 +12,8 @@ var arrayPogostihKategorij;
 var arrayOfSelectedCategoryToDraw = [];
 // v arrayu so shranjeni vsi izbrani nakupi izbrane po datumu
 var arrayOfSelectedDateToDraw = [];
+// array uporabnikov
+var arrayOfUsers = [];
 // funkcija za kreiranje elementov
 var ustvariElement = function(tag = "div", klas, besedilo) {
   var novElement = document.createElement(tag);
@@ -23,14 +25,14 @@ var ustvariElement = function(tag = "div", klas, besedilo) {
   }
   return novElement;
 };
-// funkcija za risanje HTML elementov glede na kategorijo.
-var drawTableOfSelectedCategories = function(inputArrayOfCategory) {
+// funkcija za risanje HTML elementov glede na vhodni podatek.
+var drawTableOfSelectedData = function(inputArrayOfData) {
   // prostor kjer bo tabla
   var tableElement = document.querySelector(".table-contents");
   // spraznimo tabelo preden jo ponovno ustvarimo
   tableElement.innerHTML = "";
   // for zanka katera gre skozi en objekt in ga narise
-  inputArrayOfCategory.forEach(function(row) {
+  inputArrayOfData.forEach(function(row) {
     var newRowElement = ustvariElement("div", "table-data");
     tableElement.append(newRowElement);
 
@@ -54,7 +56,7 @@ var drawTableOfSelectedCategories = function(inputArrayOfCategory) {
     newRowElement.append(newCellElement);
   });
   // narisemo zadnjo vrstico katera nam poda sestevek vseh stroskov izbrane kategorije
-  var newSumElement = ustvariElement("div", "type", "Skupni Strošek: " + sumStroskovIzbraneKategorije(inputArrayOfCategory) + " €");
+  var newSumElement = ustvariElement("div", "type", "Skupni Strošek: " + sumStroskovIzbraneKategorije(inputArrayOfData) + " €");
   tableElement.append(newSumElement);
 };
 // funkcija za branje file (Mato)
@@ -82,8 +84,8 @@ function sumStroskovIzbraneKategorije(izbrnaKategorija) {
   return sum;
 }
 // funkcija razvršča nakupe po datumu
-var razvrstiPoDatumu = function(inputArray) {
-  return inputArray.sort(function(prvi, drugi) {
+var sortByDate = function(ArrayToSort) {
+  return ArrayToSort.sort(function(prvi, drugi) {
     return prvi.date - drugi.date;
   });
 };
@@ -114,7 +116,7 @@ function getCategories(inputData) {
   // iz objekta dobimo vse nešene kategorije, ki so ključi
   arrayKategorij = Object.keys(countedNames);
   arrayOfDatesForFilter = Object.keys(countedDates);
-  // izberemo kategorije ki se omenijo vsaj 3x
+  // izberemo kategorije ki se omenijo vsaj 8x
   for (var j = 0; j < arrayKategorij.length; j++) {
     if (countedNames[arrayKategorij[j]] >= 8) {
       izbraneKategorije.push(arrayKategorij[j]);
@@ -132,6 +134,16 @@ function getSelectedCategories(selectedCategory) {
   }
   return arrayOfSelectedCategory;
 }
+// funkcija, ki nam napolni array samo z izbranimi objekti(uporabniki)
+function getSelectedUsers(selectedCategory) {
+  var arrayOfSelectedCategory = [];
+  for (var i = 0; i < podatki.length; i++) {
+    if (podatki[i].whoPaid === selectedCategory) {
+      arrayOfSelectedCategory.push(podatki[i]);
+    }
+  }
+  return arrayOfSelectedCategory;
+}
 function getSelectedDate(selectedDate) {
   var arrayOfSelectedDate = [];
   for (var i = 0; i < podatki.length; i++) {
@@ -142,6 +154,7 @@ function getSelectedDate(selectedDate) {
   return arrayOfSelectedDate;
 };
 function attachEvents() {
+  // risanje tabele ob kliku na hitre kategorije
   var confirmButton = document.querySelector(".confirm-button");
   confirmButton.addEventListener("click", function(event) {
     getCategories(podatki);
@@ -151,23 +164,58 @@ function attachEvents() {
       document.querySelector(".glava-nastavitve").append(tagCategories);
       tagCategories.addEventListener("click", function(event) {
         arrayOfSelectedCategoryToDraw = getSelectedCategories(event.srcElement.innerText);
-        drawTableOfSelectedCategories(razvrstiPoDatumu(arrayOfSelectedCategoryToDraw));
+        drawTableOfSelectedData(sortByDate(arrayOfSelectedCategoryToDraw));
       });
     };
   });
-  var dateDropdownButton = document.querySelector(".filter-date-dropdown");
-  var dropdownContent = document.querySelector(".dropdown-content");
+  // risanje tabele ob kliku na izbran "DATUM" (MMMM YYYY) filter dropdown
+  var dateDropdownButton = document.querySelector(".filter-date-dropdown-button");
   dateDropdownButton.addEventListener("click", function(event) {
     // vse elemente izbrišemo, če kliknem dvakrat jih naredi dvakrat!!!
+    var dropdownContent = document.querySelector(".date-dropdown-content");
     dropdownContent.innerHTML = "";
-    // omogočimo prikazovanje dropdown menija
+    // omogočimo prikazovanje dropdown menija preko .showw class-a
     dropdownContent.classList.toggle("show");
     for (var i = 0; i < arrayOfDatesForFilter.length; i++) {
       var tagDate = ustvariElement("div", "", arrayOfDatesForFilter[i]);
-      document.querySelector(".dropdown-content").append(tagDate);
+      document.querySelector(".date-dropdown-content").append(tagDate);
       tagDate.addEventListener("click", function(event) {
         arrayOfSelectedDateToDraw = getSelectedDate(event.srcElement.innerText);
-        drawTableOfSelectedCategories(razvrstiPoDatumu(arrayOfSelectedDateToDraw));
+        drawTableOfSelectedData(sortByDate(arrayOfSelectedDateToDraw));
+      });
+    }
+  });
+  // risanje tabele ob kliku na izbran "KATEGORIJE" filter dropdown
+  var categoriesDropdownButton = document.querySelector(".filter-categories-dropdown-button");
+  categoriesDropdownButton.addEventListener("click", function(event) {
+    // vse elemente izbrišemo, če kliknem dvakrat jih naredi dvakrat!!!
+    var dropdownContent = document.querySelector(".categories-dropdown-content");
+    dropdownContent.innerHTML = "";
+    // omogočimo prikazovanje dropdown menija preko .showw class-a
+    dropdownContent.classList.toggle("show");
+    for (var i = 0; i < arrayKategorij.length; i++) {
+      var tagDate = ustvariElement("div", "", arrayKategorij[i]);
+      document.querySelector(".categories-dropdown-content").append(tagDate);
+      tagDate.addEventListener("click", function(event) {
+        arrayOfSelectedDateToDraw = getSelectedCategories(event.srcElement.innerText);
+        drawTableOfSelectedData(sortByDate(arrayOfSelectedDateToDraw));
+      });
+    }
+  });
+  // risanje tabele ob kliku na izbran "UPORABNIK" filter dropdown
+  var usersDropdownButton = document.querySelector(".filter-users-dropdown-button");
+  usersDropdownButton.addEventListener("click", function(event) {
+    // vse elemente izbrišemo, če kliknem dvakrat jih naredi dvakrat!!!
+    var dropdownContent = document.querySelector(".users-dropdown-content");
+    dropdownContent.innerHTML = "";
+    // omogočimo prikazovanje dropdown menija preko .showw class-a
+    dropdownContent.classList.toggle("show");
+    for (var i = 0; i < arrayOfUsers.length; i++) {
+      var tagDate = ustvariElement("div", "", arrayOfUsers[i]);
+      document.querySelector(".users-dropdown-content").append(tagDate);
+      tagDate.addEventListener("click", function(event) {
+        arrayOfSelectedDateToDraw = getSelectedUsers(event.srcElement.innerText);
+        drawTableOfSelectedData(sortByDate(arrayOfSelectedDateToDraw));
       });
     }
   });
@@ -193,6 +241,7 @@ function processData(csv) {
       arrayCSV2D[i][j] = arrayCSV2D[i][j].replace(/"/g, "");
     }
   }
+  arrayOfUsers = ["Mato", "Maja", "Miha", "Anja"];
   // Zanka nam naredi objekt za vsako plačilo
   for (var k = 0; k < arrayCSV2D.length; k++) {
     if (arrayCSV2D[k][0].length === 10) {
@@ -211,6 +260,6 @@ function processData(csv) {
       vsaPlacila.push(strosekObj);
     }
   }
-  podatki = razvrstiPoDatumu(vsaPlacila);
+  podatki = sortByDate(vsaPlacila);
 }
 attachEvents();
