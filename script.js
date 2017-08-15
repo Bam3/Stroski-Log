@@ -145,16 +145,36 @@ var sortByDate = function(ArrayToSort) {
     return prvi.date - drugi.date;
   });
 };
+
+// Vrne array vseh datumov
+function getFilterDates(inputData) {
+  var allDates = [];
+  for (var i = 0; i < inputData.length; i++) {
+    allDates[i] = inputData[i].date.format("MMMM YYYY");
+  }
+  allDates = reduceMultipleNames(allDates);
+  return allDates;
+}
+
+// Vrne array vseh kategorij
+function getAllCategories(inputData) {
+  var allCategories = [];
+  for (var i = 0; i < inputData.length; i++) {
+    allCategories[i] = inputData[i].description;
+  }
+  allCategories = reduceMultipleNames(allCategories);
+  return allCategories;
+}
+
 // funkcija katera naredi: [array pogostih kategorije] [array vseh kategorij]
 function getCategories(inputData) {
+  var allCategories;
   var izbraneKategorije = [];
   for (var i = 0; i < inputData.length; i++) {
-    arrayKategorij[i] = inputData[i].description;
-    arrayOfDatesForFilter[i] = inputData[i].date.format("MMMM YYYY");
+    allCategories[i] = inputData[i].description;
   }
   // ustvarimo objekt katerega ključi so kategorije iz CSV-ja, vrednosti ključev so ponovitve kategorije
-  arrayOfDatesForFilter = reduceMultipleNames(arrayOfDatesForFilter);
-  var countedNames = arrayKategorij.reduce(function(allNames, name) {
+  var countedNames = allCategories.reduce(function(allNames, name) {
     if (name in allNames) {
       allNames[name]++;
     } else {
@@ -163,10 +183,10 @@ function getCategories(inputData) {
     return allNames;
   }, {});
   // iz objekta dobimo vse nešene kategorije, ki so ključi
-  arrayKategorij = Object.keys(countedNames).sort(function(a, b) { return countedNames[b] - countedNames[a]; });
+  allCategories = Object.keys(countedNames).sort(function(a, b) { return countedNames[b] - countedNames[a]; });
   // izberemo kategorije ki se omenijo vsaj 8x
   for (var j = 0; j < 10; j++) {
-    izbraneKategorije.push(arrayKategorij[j]);
+    izbraneKategorije.push(allCategories[j]);
   }
   arrayPogostihKategorij = izbraneKategorije;
 }
@@ -256,61 +276,7 @@ function attachEvents() {
   });
 };
 // funkcija preuredi surove podatke v array v katerem je vsako plačilo objekt
-function processData(csv) {
-  var arrayCSV = [];
-  var arrayCSV2D = [];
-  var vsaPlacila = [];
 
-  // vsaka vrstica v csv-ju je en element v areju
-  arrayCSV = csv.split("\n");
-  // ustvarimo 2D array, ker ima vsaka vrstica "arrayCSV" več željenih podatkov
-  arrayCSV.forEach(function(line, i) {
-    arrayCSV2D[i] = line.split(", ");
-  });
-  /* for (var i = 0; i < arrayCSV.length; i++) {
-    arrayCSV2D[i] = arrayCSV[i].split(', ');
-  } */
-  // preureditev zapisov; odstranjevanje ; presledkov in "
-  for (var i = 0; i < arrayCSV2D.length; i++) {
-    for (var j = 0; j < arrayCSV2D[i].length; j++) {
-      arrayCSV2D[i][j] = arrayCSV2D[i][j].replace(/"/g, "");
-    }
-  }
-  arrayOfUsers = ["Mato", "Maja", "Miha", "Anja"];
-  // Zanka nam naredi objekt za vsako plačilo
-  for (var k = 0; k < arrayCSV2D.length; k++) {
-    if (arrayCSV2D[k][0].length === 10) {
-        // [0]Date [1]Whopaid [2]Type [3]Amount [4]Currency [5]Description [6]Mato [7]Maja [8]Miha [9]Anja
-      var strosekObj = {};
-      strosekObj.date = moment(arrayCSV2D[k][0]);
-      strosekObj.whoPaid = String(arrayCSV2D[k][1]);
-      strosekObj.type = String(arrayCSV2D[k][2]);
-      strosekObj.amount = Number(arrayCSV2D[k][3]);
-      strosekObj.currency = String(arrayCSV2D[k][4]);
-      strosekObj.description = String(arrayCSV2D[k][5]);
-      strosekObj.mato = Number(arrayCSV2D[k][6]);
-      strosekObj.maja = Number(arrayCSV2D[k][7]);
-      strosekObj.miha = Number(arrayCSV2D[k][8]);
-      strosekObj.anja = Number(arrayCSV2D[k][9]);
-      vsaPlacila.push(strosekObj);
-    }
-  }
-  podatki = sortByDate(vsaPlacila);
-
-  getCategories(podatki);
-  // zanka nam ustvari element za vsako kategorijo v array-u
-  for (var i = 0; i < arrayPogostihKategorij.length; i++) {
-    var tagCategories = ustvariElement("div", "tag-category", arrayPogostihKategorij[i]);
-    document.querySelector(".glava-nastavitve").append(tagCategories);
-    tagCategories.addEventListener("click", function(event) {
-      arrayOfSelectedCategoryToDraw = getSelectedCategories(event.srcElement.innerText);
-      drawTableOfSelectedData(sortByDate(arrayOfSelectedCategoryToDraw));
-      console.log(arrayOfSelectedCategoryToDraw);
-      drawGraphLine(arrayOfSelectedCategoryToDraw, event.srcElement.innerText);
-    });
-  };
-
-}
 attachEvents();
 // funkcija iz Chart.js ki nariše graf TEST!!!
 function drawGraph(inputDataObject, nameOfMonthYear) {
@@ -372,6 +338,26 @@ function drawGraphLine(inputDataObject, nameOfCategory) {
   });
 };
 
+function start(csv) {
+  podatki = processData(csv);
+
+  arrayOfDatesForFilter = getFilterDates(podatki);
+  arrayKategorij = getAllCategories(podatki);
+  getCategories(podatki);
+  // zanka nam ustvari element za vsako kategorijo v array-u
+  for (var i = 0; i < arrayPogostihKategorij.length; i++) {
+    var tagCategories = ustvariElement("div", "tag-category", arrayPogostihKategorij[i]);
+    document.querySelector(".glava-nastavitve").append(tagCategories);
+    tagCategories.addEventListener("click", function(event) {
+      arrayOfSelectedCategoryToDraw = getSelectedCategories(event.srcElement.innerText);
+      drawTableOfSelectedData(sortByDate(arrayOfSelectedCategoryToDraw));
+      console.log(arrayOfSelectedCategoryToDraw);
+      drawGraphLine(arrayOfSelectedCategoryToDraw, event.srcElement.innerText);
+    });
+  };
+
+}
+
 fetch('https://raw.githubusercontent.com/Bam3/Stroski-Log/master/stroski-log.csv')
   .then(response => response.text())
-  .then(processData)
+  .then(start)
