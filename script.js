@@ -122,7 +122,7 @@ function loadHandler(event) {
   var csv = event.target.result;
   processData(csv);
 }
-// funkcija za seštevanje vseh stroškov izbrane kategorije
+  // funkcija za seštevanje vseh stroškov izbrane kategorije
 function sumStroskovIzbraneKategorije(izbranaKategorijaObject) {
   var sum = 0;
   izbranaKategorijaObject.forEach(function(row) {
@@ -200,22 +200,6 @@ function getSelectedDate(selectedDate) {
   return arrayOfSelectedDate;
 };
 function attachEvents() {
-  // risanje tabele ob kliku na hitre kategorije
-  var confirmButton = document.querySelector(".confirm-button");
-  confirmButton.addEventListener("click", function(event) {
-    getCategories(podatki);
-    // zanka nam ustvari element za vsako kategorijo v array-u
-    for (var i = 0; i < arrayPogostihKategorij.length; i++) {
-      var tagCategories = ustvariElement("div", "tag-category", arrayPogostihKategorij[i]);
-      document.querySelector(".glava-nastavitve").append(tagCategories);
-      tagCategories.addEventListener("click", function(event) {
-        arrayOfSelectedCategoryToDraw = getSelectedCategories(event.srcElement.innerText);
-        drawTableOfSelectedData(sortByDate(arrayOfSelectedCategoryToDraw));
-        console.log(arrayOfSelectedCategoryToDraw);
-        drawGraphLine(arrayOfSelectedCategoryToDraw, event.srcElement.innerText);
-      });
-    };
-  });
   // risanje tabele ob kliku na izbran "DATUM" (MMMM YYYY) filter dropdown
   var dateDropdownButton = document.querySelector(".filter-date-dropdown-button");
   dateDropdownButton.addEventListener("click", function(event) {
@@ -312,6 +296,20 @@ function processData(csv) {
     }
   }
   podatki = sortByDate(vsaPlacila);
+
+  getCategories(podatki);
+  // zanka nam ustvari element za vsako kategorijo v array-u
+  for (var i = 0; i < arrayPogostihKategorij.length; i++) {
+    var tagCategories = ustvariElement("div", "tag-category", arrayPogostihKategorij[i]);
+    document.querySelector(".glava-nastavitve").append(tagCategories);
+    tagCategories.addEventListener("click", function(event) {
+      arrayOfSelectedCategoryToDraw = getSelectedCategories(event.srcElement.innerText);
+      drawTableOfSelectedData(sortByDate(arrayOfSelectedCategoryToDraw));
+      console.log(arrayOfSelectedCategoryToDraw);
+      drawGraphLine(arrayOfSelectedCategoryToDraw, event.srcElement.innerText);
+    });
+  };
+
 }
 attachEvents();
 // funkcija iz Chart.js ki nariše graf TEST!!!
@@ -373,3 +371,7 @@ function drawGraphLine(inputDataObject, nameOfCategory) {
     }
   });
 };
+
+fetch('https://raw.githubusercontent.com/Bam3/Stroski-Log/master/stroski-log.csv')
+  .then(response => response.text())
+  .then(processData)
