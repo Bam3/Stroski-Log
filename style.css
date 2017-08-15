@@ -99,7 +99,7 @@ h1 {
   z-index: 1;
 }
 
-/* do tukaj so dropdown gumbi - POPRAVI!!!! --------------------------------*/ 
+/* do tukaj so dropdown gumbi - POPRAVI!!!! --------------------------------*/
 .tag-category {
   height: 36px;
   width: 110px;
@@ -162,4 +162,9 @@ h1 {
 }
 .show {
   display: block;
+}
+#myChart {
+  max-width: 1500px;
+  max-height: 850px;
+  margin:auto;
 }

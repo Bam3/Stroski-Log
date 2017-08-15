@@ -14,6 +14,53 @@ var arrayOfSelectedCategoryToDraw = [];
 var arrayOfSelectedDateToDraw = [];
 // array uporabnikov
 var arrayOfUsers = [];
+// določamo barvo glede na kategorijo nakupa
+function setColorForLabel(categories) {
+  var arrayOfColours = [];
+  for (var i = 0; i < categories.length; i++) {
+    switch (categories[i]) {
+      case "Telemach":
+        arrayOfColours.push("#58308F");
+        break;
+      case "DM":
+        arrayOfColours.push("yellow");
+        break;
+      case "Mercator":
+        arrayOfColours.push("red");
+        break;
+      case "Plin in ogrevanje":
+        arrayOfColours.push("#E37518");
+        break;
+      case "Snaga":
+        arrayOfColours.push("green");
+        break;
+      case "Hofer":
+        arrayOfColours.push("blue");
+        break;
+      case "Elektrika":
+        arrayOfColours.push("#A2E38B");
+        break;
+      case "Voda":
+        arrayOfColours.push("#4E5FE3");
+        break;
+      default:
+        arrayOfColours.push("black");
+    }
+  }
+  return arrayOfColours;
+}
+// iz objekta dobimo array izbranih kategorij. npr. če imamo 20 hofer in 5 mercator nam vrne [hofer, mercator]
+function reduceMultipleNames(inputDataArray) {
+  var countedNames = inputDataArray.reduce(function(allNames, name) {
+    if (name in allNames) {
+      allNames[name]++;
+    } else {
+      allNames[name] = 1;
+    }
+    return allNames;
+  }, {});
+  return Object.keys(countedNames);
+};
 // funkcija za kreiranje elementov
 var ustvariElement = function(tag = "div", klas, besedilo) {
   var novElement = document.createElement(tag);
@@ -76,11 +123,20 @@ function loadHandler(event) {
   processData(csv);
 }
 // funkcija za seštevanje vseh stroškov izbrane kategorije
-function sumStroskovIzbraneKategorije(izbrnaKategorija) {
+function sumStroskovIzbraneKategorije(izbranaKategorijaObject) {
   var sum = 0;
-  izbrnaKategorija.forEach(function(row) {
+  izbranaKategorijaObject.forEach(function(row) {
     sum += row.amount;
   });
+  return sum;
+}
+function sumStroskovPosamezneKategorije(inputDataObject, category) {
+  var sum = 0;
+  for (var i = 0; i < inputDataObject.length; i++) {
+    if (inputDataObject[i].description === category) {
+      sum += inputDataObject[i].amount;
+    }
+  }
   return sum;
 }
 // funkcija razvršča nakupe po datumu
@@ -97,6 +153,7 @@ function getCategories(inputData) {
     arrayOfDatesForFilter[i] = inputData[i].date.format("MMMM YYYY");
   }
   // ustvarimo objekt katerega ključi so kategorije iz CSV-ja, vrednosti ključev so ponovitve kategorije
+  arrayOfDatesForFilter = reduceMultipleNames(arrayOfDatesForFilter);
   var countedNames = arrayKategorij.reduce(function(allNames, name) {
     if (name in allNames) {
       allNames[name]++;
@@ -105,25 +162,14 @@ function getCategories(inputData) {
     }
     return allNames;
   }, {});
-  var countedDates = arrayOfDatesForFilter.reduce(function(allNames, name) {
-    if (name in allNames) {
-      allNames[name]++;
-    } else {
-      allNames[name] = 1;
-    }
-    return allNames;
-  }, {});
   // iz objekta dobimo vse nešene kategorije, ki so ključi
-  arrayKategorij = Object.keys(countedNames);
-  arrayOfDatesForFilter = Object.keys(countedDates);
+  arrayKategorij = Object.keys(countedNames).sort(function(a, b) { return countedNames[b] - countedNames[a]; });
   // izberemo kategorije ki se omenijo vsaj 8x
-  for (var j = 0; j < arrayKategorij.length; j++) {
-    if (countedNames[arrayKategorij[j]] >= 8) {
-      izbraneKategorije.push(arrayKategorij[j]);
-    }
+  for (var j = 0; j < 10; j++) {
+    izbraneKategorije.push(arrayKategorij[j]);
   }
   arrayPogostihKategorij = izbraneKategorije;
-};
+}
 // funkcija, ki nam napolni array samo z izbranimi objekti(kategorijo)
 function getSelectedCategories(selectedCategory) {
   var arrayOfSelectedCategory = [];
@@ -165,6 +211,8 @@ function attachEvents() {
       tagCategories.addEventListener("click", function(event) {
         arrayOfSelectedCategoryToDraw = getSelectedCategories(event.srcElement.innerText);
         drawTableOfSelectedData(sortByDate(arrayOfSelectedCategoryToDraw));
+        console.log(arrayOfSelectedCategoryToDraw);
+        drawGraphLine(arrayOfSelectedCategoryToDraw, event.srcElement.innerText);
       });
     };
   });
@@ -182,6 +230,9 @@ function attachEvents() {
       tagDate.addEventListener("click", function(event) {
         arrayOfSelectedDateToDraw = getSelectedDate(event.srcElement.innerText);
         drawTableOfSelectedData(sortByDate(arrayOfSelectedDateToDraw));
+        console.log(sortByDate(arrayOfSelectedDateToDraw));
+        // narišemo še graf TESTNO!!!
+        drawGraph(arrayOfSelectedDateToDraw, event.srcElement.innerText);
       });
     }
   });
@@ -263,3 +314,62 @@ function processData(csv) {
   podatki = sortByDate(vsaPlacila);
 }
 attachEvents();
+// funkcija iz Chart.js ki nariše graf TEST!!!
+function drawGraph(inputDataObject, nameOfMonthYear) {
+  var ctx = document.getElementById("myChart");
+  var arrayLabels = [];
+  var arrayData = [];
+  for (var i = 0; i < inputDataObject.length; i++) {
+    arrayLabels[i] = inputDataObject[i].description;
+  }
+  // izločimo ponavljajoča imena
+  arrayLabels = reduceMultipleNames(arrayLabels);
+  // seštejemo vse za eno kategorijo
+  for (var j = 0; j < arrayLabels.length; j++) {
+    arrayData[j] = sumStroskovPosamezneKategorije(inputDataObject, arrayLabels[j]);
+  }
+  var myChart = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: arrayLabels,
+      datasets: [{
+        label: nameOfMonthYear,
+        data: arrayData,
+        backgroundColor: setColorForLabel(arrayLabels),
+        borderColor: [],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      cutoutPercentage: 25
+    }
+  });
+};
+
+function drawGraphLine(inputDataObject, nameOfCategory) {
+  var ctx = document.getElementById("myChart");
+  var arrayLabels = [];
+  var arrayLabelsValue = [];
+  for (var i = 0; i < inputDataObject.length; i++) {
+    arrayLabels[i] = inputDataObject[i].date.format("MMMM YYYY");
+  }
+  for (var j = 0; j < inputDataObject.length; j++) {
+    arrayLabelsValue[j] = inputDataObject[j].amount;
+  }
+  console.log(arrayLabelsValue);
+  var myChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: arrayLabels,
+      datasets: [{
+        label: nameOfCategory,
+        data: arrayLabelsValue,
+        backgroundColor: setColorForLabel(arrayLabels),
+        borderColor: [],
+        borderWidth: 1
+      }]
+    },
+    options: {
+    }
+  });
+};
