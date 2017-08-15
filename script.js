@@ -3,11 +3,11 @@ moment.locale("sl");
 // array objektov - vsak objekt je nakup
 var podatki = [];
 // vse kategorije, ki so se pojavile
-var arrayKategorij = [];
+var arrayOfCategories = [];
 // array datumov oblike MMMM YYYY
 var arrayOfDatesForFilter = [];
 // array kategorij ki so se ponovile vsaj 3x
-var arrayPogostihKategorij;
+var arrayOfTopCategories;
 // v arrayu so shranjeni vsi izbrani nakupi kategorije izbrane iz gumba .tag-category
 var arrayOfSelectedCategoryToDraw = [];
 // v arrayu so shranjeni vsi izbrani nakupi izbrane po datumu
@@ -62,15 +62,18 @@ function reduceMultipleNames(inputDataArray) {
   return Object.keys(countedNames);
 };
 // funkcija za kreiranje elementov
-var ustvariElement = function(tag = "div", klas, besedilo) {
-  var novElement = document.createElement(tag);
+var createHTMLElement = function(tag = "div", klas, inputText, appendToWhat) {
+  var newElement = document.createElement(tag);
   if (klas) {
-    novElement.classList.add(klas);
+    newElement.classList.add(klas);
   }
-  if (besedilo) {
-    novElement.append(besedilo);
+  if (inputText) {
+    newElement.append(inputText);
   }
-  return novElement;
+  if (appendToWhat) {
+    appendToWhat.append(newElement);
+  }
+  return newElement;
 };
 // funkcija za risanje HTML elementov glede na vhodni podatek.
 var drawTableOfSelectedData = function(inputArrayOfData) {
@@ -80,31 +83,20 @@ var drawTableOfSelectedData = function(inputArrayOfData) {
   tableElement.innerHTML = "";
   // for zanka katera gre skozi en objekt in ga narise
   inputArrayOfData.forEach(function(row) {
-    var newRowElement = ustvariElement("div", "table-data");
-    tableElement.append(newRowElement);
-
-    var newCellElement = ustvariElement("div", "type", row.date.format("D. M. YYYY"));
-    newRowElement.append(newCellElement);
-    newCellElement = ustvariElement("div", "type", row.whoPaid);
-    newRowElement.append(newCellElement);
-    newCellElement = ustvariElement("div", "type", row.type);
-    newRowElement.append(newCellElement);
-    newCellElement = ustvariElement("div", "type", row.amount + " €");
-    newRowElement.append(newCellElement);
-    newCellElement = ustvariElement("div", "type", row.description);
-    newRowElement.append(newCellElement);
-    newCellElement = ustvariElement("div", "type", row.mato + " €");
-    newRowElement.append(newCellElement);
-    newCellElement = ustvariElement("div", "type", row.maja + " €");
-    newRowElement.append(newCellElement);
-    newCellElement = ustvariElement("div", "type", row.miha + " €");
-    newRowElement.append(newCellElement);
-    newCellElement = ustvariElement("div", "type", row.anja + " €");
-    newRowElement.append(newCellElement);
+    var newRowElement = createHTMLElement("div", "table-data", "", tableElement);
+    var newCellElement = createHTMLElement("div", "type", row.date.format("D. M. YYYY"), newRowElement);
+    newCellElement = createHTMLElement("div", "type", row.whoPaid, newRowElement);
+    newCellElement = createHTMLElement("div", "type", row.type, newRowElement);
+    newCellElement = createHTMLElement("div", "type", row.amount + " €", newRowElement);
+    newCellElement = createHTMLElement("div", "type", row.description, newRowElement);
+    newCellElement = createHTMLElement("div", "type", row.mato + " €", newRowElement);
+    newCellElement = createHTMLElement("div", "type", row.maja + " €", newRowElement);
+    newCellElement = createHTMLElement("div", "type", row.miha + " €", newRowElement);
+    newCellElement = createHTMLElement("div", "type", row.anja + " €", newRowElement);
   });
   // narisemo zadnjo vrstico katera nam poda sestevek vseh stroskov izbrane kategorije
-  var newSumElement = ustvariElement("div", "type", "Skupni Strošek: " + sumStroskovIzbraneKategorije(inputArrayOfData) + " €");
-  tableElement.append(newSumElement);
+  var newSumElement = createHTMLElement("div", "type", "Skupni Strošek: " + sumStroskovIzbraneKategorije(inputArrayOfData) + " €", tableElement);
+  //tableElement.append(newSumElement);
 };
 // funkcija za branje file (Mato)
 function readFile(files) {
@@ -166,10 +158,10 @@ function getAllCategories(inputData) {
   return allCategories;
 }
 
-// funkcija katera naredi: [array pogostih kategorije] [array vseh kategorij]
-function getCategories(inputData) {
-  var allCategories;
-  var izbraneKategorije = [];
+// Vrne array top kategorij
+function getTopCategories(inputData) {
+  var allCategories = [];
+  var selectedCategories = [];
   for (var i = 0; i < inputData.length; i++) {
     allCategories[i] = inputData[i].description;
   }
@@ -186,9 +178,9 @@ function getCategories(inputData) {
   allCategories = Object.keys(countedNames).sort(function(a, b) { return countedNames[b] - countedNames[a]; });
   // izberemo kategorije ki se omenijo vsaj 8x
   for (var j = 0; j < 10; j++) {
-    izbraneKategorije.push(allCategories[j]);
+    selectedCategories.push(allCategories[j]);
   }
-  arrayPogostihKategorij = izbraneKategorije;
+  return selectedCategories;
 }
 // funkcija, ki nam napolni array samo z izbranimi objekti(kategorijo)
 function getSelectedCategories(selectedCategory) {
@@ -229,12 +221,11 @@ function attachEvents() {
     // omogočimo prikazovanje dropdown menija preko .showw class-a
     dropdownContent.classList.toggle("show");
     for (var i = 0; i < arrayOfDatesForFilter.length; i++) {
-      var tagDate = ustvariElement("div", "", arrayOfDatesForFilter[i]);
+      var tagDate = createHTMLElement("div", "", arrayOfDatesForFilter[i]);
       document.querySelector(".date-dropdown-content").append(tagDate);
       tagDate.addEventListener("click", function(event) {
         arrayOfSelectedDateToDraw = getSelectedDate(event.srcElement.innerText);
         drawTableOfSelectedData(sortByDate(arrayOfSelectedDateToDraw));
-        console.log(sortByDate(arrayOfSelectedDateToDraw));
         // narišemo še graf TESTNO!!!
         drawGraph(arrayOfSelectedDateToDraw, event.srcElement.innerText);
       });
@@ -246,10 +237,10 @@ function attachEvents() {
     // vse elemente izbrišemo, če kliknem dvakrat jih naredi dvakrat!!!
     var dropdownContent = document.querySelector(".categories-dropdown-content");
     dropdownContent.innerHTML = "";
-    // omogočimo prikazovanje dropdown menija preko .showw class-a
+    // omogočimo prikazovanje dropdown menija preko .show class-a
     dropdownContent.classList.toggle("show");
-    for (var i = 0; i < arrayKategorij.length; i++) {
-      var tagDate = ustvariElement("div", "", arrayKategorij[i]);
+    for (var i = 0; i < arrayOfCategories.length; i++) {
+      var tagDate = createHTMLElement("div", "", arrayOfCategories[i]);
       document.querySelector(".categories-dropdown-content").append(tagDate);
       tagDate.addEventListener("click", function(event) {
         arrayOfSelectedDateToDraw = getSelectedCategories(event.srcElement.innerText);
@@ -266,7 +257,7 @@ function attachEvents() {
     // omogočimo prikazovanje dropdown menija preko .showw class-a
     dropdownContent.classList.toggle("show");
     for (var i = 0; i < arrayOfUsers.length; i++) {
-      var tagDate = ustvariElement("div", "", arrayOfUsers[i]);
+      var tagDate = createHTMLElement("div", "", arrayOfUsers[i]);
       document.querySelector(".users-dropdown-content").append(tagDate);
       tagDate.addEventListener("click", function(event) {
         arrayOfSelectedDateToDraw = getSelectedUsers(event.srcElement.innerText);
@@ -320,7 +311,6 @@ function drawGraphLine(inputDataObject, nameOfCategory) {
   for (var j = 0; j < inputDataObject.length; j++) {
     arrayLabelsValue[j] = inputDataObject[j].amount;
   }
-  console.log(arrayLabelsValue);
   var myChart = new Chart(ctx, {
     type: "line",
     data: {
@@ -342,16 +332,15 @@ function start(csv) {
   podatki = processData(csv);
 
   arrayOfDatesForFilter = getFilterDates(podatki);
-  arrayKategorij = getAllCategories(podatki);
-  getCategories(podatki);
+  arrayOfCategories = getAllCategories(podatki);
+  arrayOfTopCategories = getTopCategories(podatki);
   // zanka nam ustvari element za vsako kategorijo v array-u
-  for (var i = 0; i < arrayPogostihKategorij.length; i++) {
-    var tagCategories = ustvariElement("div", "tag-category", arrayPogostihKategorij[i]);
+  for (var i = 0; i < arrayOfTopCategories.length; i++) {
+    var tagCategories = createHTMLElement("div", "tag-category", arrayOfTopCategories[i]);
     document.querySelector(".glava-nastavitve").append(tagCategories);
     tagCategories.addEventListener("click", function(event) {
       arrayOfSelectedCategoryToDraw = getSelectedCategories(event.srcElement.innerText);
       drawTableOfSelectedData(sortByDate(arrayOfSelectedCategoryToDraw));
-      console.log(arrayOfSelectedCategoryToDraw);
       drawGraphLine(arrayOfSelectedCategoryToDraw, event.srcElement.innerText);
     });
   };
