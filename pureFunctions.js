@@ -43,8 +43,6 @@ function processData(csv) {
     }
   }
 
-
-
   return allPayments;
 }
 
