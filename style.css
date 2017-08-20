@@ -34,38 +34,13 @@ h1 {
 }
 
 /* tukaj so dropdown gumbi - POPRAVI!!!! ---------------------------------- */
-.filter-date-dropdown-button:hover {
-  background: grey;
-  color: black;
-  cursor: pointer;
-}
-.filter-categories-dropdown-button:hover {
-  background: grey;
-  color: black;
-  cursor: pointer;
-}
-.filter-users-dropdown-button:hover {
+.filter-dropdown-button:hover {
   background: grey;
   color: black;
   cursor: pointer;
 }
 
-
-.filter-date-dropdown-button {
-  width: 80px;
-  height: 35px;
-  text-align: center;
-  font-weight: bold;
-  line-height: 35px;
-}
-.filter-categories-dropdown-button {
-  width: 80px;
-  height: 35px;
-  text-align: center;
-  font-weight: bold;
-  line-height: 35px;
-}
-.filter-users-dropdown-button {
+.filter-dropdown-button {
   width: 80px;
   height: 35px;
   text-align: center;
@@ -73,8 +48,7 @@ h1 {
   line-height: 35px;
 }
 
-
-.date-dropdown-content {
+.dropdown-content {
   display: none;
   position: absolute;
   background-color: #f9f9f9;
@@ -82,23 +56,6 @@ h1 {
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
 }
-.categories-dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
-}
-.users-dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f9f9f9;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
-}
-
 /* do tukaj so dropdown gumbi - POPRAVI!!!! --------------------------------*/
 .tag-category {
   height: 36px;

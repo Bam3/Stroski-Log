@@ -1,20 +1,6 @@
 /* globals moment */
 moment.locale("sl");
-// array objektov - vsak objekt je nakup
-var podatki = [];
-// vse kategorije, ki so se pojavile
-var arrayOfCategories = [];
-// array datumov oblike MMMM YYYY
-var arrayOfDatesForFilter = [];
-// array kategorij ki so se ponovile vsaj 3x
-var arrayOfTopCategories;
-// v arrayu so shranjeni vsi izbrani nakupi kategorije izbrane iz gumba .tag-category
-var arrayOfSelectedCategoryToDraw = [];
-// v arrayu so shranjeni vsi izbrani nakupi izbrane po datumu
-var arrayOfSelectedDateToDraw = [];
-// array uporabnikov
-var arrayOfUsers = [];
-
+var myChart;
 // funkcija za risanje HTML elementov glede na vhodni podatek.
 var drawTableOfSelectedData = function(inputArrayOfData) {
   // poiscemo obstojeco tabelo
@@ -42,68 +28,56 @@ var drawTableOfSelectedData = function(inputArrayOfData) {
 //   processData(csv);
 // }
 
-function attachEvents() {
-  // risanje tabele ob kliku na izbran "DATUM" (MMMM YYYY) filter dropdown
-  var dateDropdownButton = document.querySelector(".filter-date-dropdown-button");
-  dateDropdownButton.addEventListener("click", function(event) {
-    // vse elemente izbrišemo, če kliknem dvakrat jih naredi dvakrat!!!
-    var dropdownContent = document.querySelector(".date-dropdown-content");
-    dropdownContent.innerHTML = "";
-    // omogočimo prikazovanje dropdown menija preko .showw class-a
-    dropdownContent.classList.toggle("show");
-    for (var i = 0; i < arrayOfDatesForFilter.length; i++) {
-      var tagDate = createHTMLElement("div", "", arrayOfDatesForFilter[i].label);
-      tagDate.dataset.filter = arrayOfDatesForFilter[i].id;
-      dropdownContent.append(tagDate);
-      tagDate.addEventListener("click", function(event) {
-        var date = event.srcElement.dataset.filter;
-        arrayOfSelectedDateToDraw = getSelectedDate(podatki, date);
-        drawTableOfSelectedData(sortByDate(arrayOfSelectedDateToDraw));
-        // narišemo še graf TESTNO!!!
-        drawGraph(arrayOfSelectedDateToDraw, date);
-      });
-    }
-  });
-
-  // risanje tabele ob kliku na izbran "KATEGORIJE" filter dropdown
-  var categoriesDropdownButton = document.querySelector(".filter-categories-dropdown-button");
-  categoriesDropdownButton.addEventListener("click", function(event) {
-    // vse elemente izbrišemo, če kliknem dvakrat jih naredi dvakrat!!!
-    var dropdownContent = document.querySelector(".categories-dropdown-content");
-    dropdownContent.innerHTML = "";
-    // omogočimo prikazovanje dropdown menija preko .show class-a
-    dropdownContent.classList.toggle("show");
-    for (var i = 0; i < arrayOfCategories.length; i++) {
-      var tagDate = createHTMLElement("div", "", arrayOfCategories[i].label);
-      tagDate.dataset.filter = arrayOfCategories[i].id;
-      dropdownContent.append(tagDate);
-      tagDate.addEventListener("click", function(event) {
-        arrayOfSelectedDateToDraw = getSelectedCategories(podatki, event.srcElement.innerText);
-        drawTableOfSelectedData(sortByDate(arrayOfSelectedDateToDraw));
-      });
-    }
-  });
-  // risanje tabele ob kliku na izbran "UPORABNIK" filter dropdown
-  var usersDropdownButton = document.querySelector(".filter-users-dropdown-button");
-  usersDropdownButton.addEventListener("click", function(event) {
-    // vse elemente izbrišemo, če kliknem dvakrat jih naredi dvakrat!!!
-    var dropdownContent = document.querySelector(".users-dropdown-content");
-    dropdownContent.innerHTML = "";
-    // omogočimo prikazovanje dropdown menija preko .showw class-a
-    dropdownContent.classList.toggle("show");
-    for (var i = 0; i < arrayOfUsers.length; i++) {
-      var tagDate = createHTMLElement("div", "", arrayOfUsers[i]);
-      document.querySelector(".users-dropdown-content").append(tagDate);
-      tagDate.addEventListener("click", function(event) {
-        arrayOfSelectedDateToDraw = getSelectedUsers(podatki, event.srcElement.innerText);
-        drawTableOfSelectedData(sortByDate(arrayOfSelectedDateToDraw));
-      });
-    }
+function attachEvents(dropdownDatasForFilter, allPayments) {
+  // najde vse dropdown tipke
+  var dropdownButtons = document.querySelectorAll(".filter-dropdown-button");
+  // vsakemu doda evenlistnener
+  dropdownButtons.forEach(function (dropdownButton, i) {
+    dropdownButton.addEventListener("click", function(event) {
+      // in v vsakem najde class dropdown-content
+      var dropdownContent = dropdownButton.querySelector(".dropdown-content");
+      //ga očisti
+      dropdownContent.innerHTML = "";
+      //ga pokaže s class-om show
+      dropdownContent.classList.toggle("show");
+      dropdownDatasForFilter[i].forEach(function(item){
+        //za vsak podatek naredi element
+        var itemElement = createHTMLElement("div", "", item.label);
+        itemElement.dataset.filter = item.id;
+        // narejen element dodeli v contents
+        dropdownContent.append(itemElement);
+        //narejenemu elementu doda eventlistener ki bo naredil glvno tabelo
+        itemElement.addEventListener("click", function(event) {
+          var filter = event.srcElement.dataset.filter;
+          // iz vseh podatkov izčrpa samo tiste katere smo izbrali, npr. kategorija, user ali datum
+          var newData = filterData(allPayments, filter, dropdownButton.dataset.filterKey);
+          // narišemo tabelo
+          drawTableOfSelectedData(sortByDate(newData));
+          // narišemo graf
+          drawGraph(newData, filter);
+        })
+      })
+    })
   });
 };
-// funkcija preuredi surove podatke v array v katerem je vsako plačilo objekt
 
-attachEvents();
+function drawTopCategories(allPayments) {
+  //dobimo najpogosteje kategorije
+  var topCategories = getTopCategories(allPayments);
+  // zanka nam ustvari HTML element za vsako kategorijo v array-u in nam jih nariše v glavo
+  // ob kliku na kategorijo nam izriše tabelo stroškov!
+  for (var i = 0; i < topCategories.length; i++) {
+    var tagCategories = createHTMLElement("div", "tag-category", topCategories[i]);
+    document.querySelector(".glava-nastavitve").append(tagCategories);
+    tagCategories.addEventListener("click", function(event) {
+      var selectedCategoryToDraw = filterData(allPayments, event.srcElement.innerText, 'description');
+      drawTableOfSelectedData(sortByDate(selectedCategoryToDraw));
+      drawGraphLine(selectedCategoryToDraw, event.srcElement.innerText);
+    });
+  };
+}
+
+
 // funkcija iz Chart.js ki nariše graf TEST!!!
 function drawGraph(inputDataObject, nameOfMonthYear) {
   var ctx = document.getElementById("myChart");
@@ -116,9 +90,12 @@ function drawGraph(inputDataObject, nameOfMonthYear) {
   arrayLabels = reduceMultipleNames(arrayLabels);
   // seštejemo vse za eno kategorijo
   for (var j = 0; j < arrayLabels.length; j++) {
-    arrayData[j] = sumStroskovPosamezneKategorije(inputDataObject, arrayLabels[j]);
+    arrayData[j] = sumStroskov(inputDataObject, arrayLabels[j]);
   }
-  var myChart = new Chart(ctx, {
+  if (myChart) {
+    myChart.destroy();
+  }
+  myChart = new Chart(ctx, {
     type: "pie",
     data: {
       labels: arrayLabels,
@@ -135,7 +112,6 @@ function drawGraph(inputDataObject, nameOfMonthYear) {
     }
   });
 };
-
 function drawGraphLine(inputDataObject, nameOfCategory) {
   var ctx = document.getElementById("myChart");
   var arrayLabels = [];
@@ -146,7 +122,10 @@ function drawGraphLine(inputDataObject, nameOfCategory) {
   for (var j = 0; j < inputDataObject.length; j++) {
     arrayLabelsValue[j] = inputDataObject[j].amount;
   }
-  var myChart = new Chart(ctx, {
+  if (myChart) {
+    myChart.destroy();
+  }
+  myChart = new Chart(ctx, {
     type: "line",
     data: {
       labels: arrayLabels,
@@ -162,24 +141,18 @@ function drawGraphLine(inputDataObject, nameOfCategory) {
     }
   });
 };
-
+// MAIN
 function start(csv) {
-  podatki = processData(csv);
+  var allPayments = processData(csv);
 
-  arrayOfDatesForFilter = getFilterDates(podatki);
-  arrayOfCategories = getAllCategories(podatki);
-  arrayOfTopCategories = getTopCategories(podatki);
-  // zanka nam ustvari element za vsako kategorijo v array-u
-  for (var i = 0; i < arrayOfTopCategories.length; i++) {
-    var tagCategories = createHTMLElement("div", "tag-category", arrayOfTopCategories[i]);
-    document.querySelector(".glava-nastavitve").append(tagCategories);
-    tagCategories.addEventListener("click", function(event) {
-      arrayOfSelectedCategoryToDraw = getSelectedCategories(podatki, event.srcElement.innerText);
-      drawTableOfSelectedData(sortByDate(arrayOfSelectedCategoryToDraw));
-      drawGraphLine(arrayOfSelectedCategoryToDraw, event.srcElement.innerText);
-    });
-  };
-
+  var dropdownDatasForFilter = [
+    getAllFilterData(allPayments, 'month'),
+    getAllFilterData(allPayments, 'description'),
+    getAllFilterData(allPayments, 'whoPaid')
+  ];
+  attachEvents(dropdownDatasForFilter, allPayments);
+  drawTopCategories(allPayments);
+  console.log(dropdownDatasForFilter);
 }
 
 fetch('https://raw.githubusercontent.com/Bam3/Stroski-Log/master/stroski-log.csv')
