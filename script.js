@@ -144,9 +144,14 @@ function drawGraphLine(inputDataObject, nameOfCategory) {
       datasets: [{
         label: nameOfCategory,
         data: arrayLabelsValue,
-        backgroundColor: setColorForLabel(arrayLabels),
         borderColor: [],
-        borderWidth: 1
+        borderWidth: 1,
+        fill: false,
+        pointStyle: 'star',
+        pointRadius: 10,
+        lineTension: 0,
+        borderWidth: 5,
+        pointBorderWidth: 10
       }]
     },
     options: {
@@ -158,10 +163,11 @@ function start(csv) {
   var allPayments = processData(csv);
 
   var dropdownDatasForFilter = [
-    getAllFilterData(allPayments, 'month'),
+    getAllFilterData(sortByDate(allPayments), 'month'),
     getAllFilterData(allPayments, 'description'),
     getAllFilterData(allPayments, 'whoPaid')
   ];
+  console.log(dropdownDatasForFilter);
   attachEvents(dropdownDatasForFilter, allPayments);
   drawTopCategories(allPayments);
   //console.log(dropdownDatasForFilter);
