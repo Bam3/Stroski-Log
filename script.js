@@ -116,11 +116,23 @@ function drawGraphLine(inputDataObject, nameOfCategory) {
   var ctx = document.getElementById("myChart");
   var arrayLabels = [];
   var arrayLabelsValue = [];
+  var sum = 0;
+
   for (var i = 0; i < inputDataObject.length; i++) {
-    arrayLabels[i] = moment(inputDataObject[i].date).format("MMMM YYYY");
+    arrayLabels[i] = inputDataObject[i].month;
   }
-  for (var j = 0; j < inputDataObject.length; j++) {
-    arrayLabelsValue[j] = inputDataObject[j].amount;
+  // izločimo vsak mesec
+  arrayLabels = reduceMultipleNames(arrayLabels);
+  // seštejemo stroške za vsak mesec
+  for (var j = 0; j < arrayLabels.length; j++) {
+    var monthForSum = arrayLabels[j];
+    for (var k = 0; k < inputDataObject.length; k++) {
+      if (monthForSum === inputDataObject[k].month) {
+        sum += inputDataObject[k].amount;
+      }
+    }
+    arrayLabelsValue.push(sum);
+    sum = 0;
   }
   if (myChart) {
     myChart.destroy();
@@ -152,7 +164,7 @@ function start(csv) {
   ];
   attachEvents(dropdownDatasForFilter, allPayments);
   drawTopCategories(allPayments);
-  console.log(dropdownDatasForFilter);
+  //console.log(dropdownDatasForFilter);
 }
 
 fetch('https://raw.githubusercontent.com/Bam3/Stroski-Log/master/stroski-log.csv')
